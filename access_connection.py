@@ -42,21 +42,42 @@ def insert_query(sel_query):
     return insert_into_tbl_main
 
 
+def insert_qry_ind2_subnat(sel_query):
+    insert_into_tbl_main_natl = """
+    INSERT INTO tbl_main ( ISO, admin0_name, boundary, indicator_id, thresh, [Year], [Value], text_value,
+    iso_and_subnat, sub_nat_id )
+    SELECT {0}.adm0, adm0.NAME_ENGLISH, ? AS bound, ? AS ind_id, {0}.tcd, {0}.[loss_yr] AS lossyr, Sum({0}.Value) AS val,
+    ? AS txt, {0}.adm0, ? AS Expr1
+    FROM adm0 INNER JOIN {0} ON (adm0.ISO = {0}.adm0) AND (adm0.ISO = {0}.adm0) AND (adm0.ISO = {0}.adm0)
+    GROUP BY {0}.adm0, adm0.NAME_ENGLISH, ?, ?, {0}.tcd, {0}.[loss_yr], ?, {0}.adm0, ?;
+    """.format(sel_query)
+
+    return insert_into_tbl_main_natl
+
+
 def append_select_queries(cursor, conn, sel_qry_list):
-    ind_to_append = [1, 2, 12, 13, 14]
+    ind_to_append = [2]
     for sel_query in sel_qry_list:
         ind_id = int(sel_query.split("_")[1])
 
         if ind_id in ind_to_append:
             print "indicator {}".format(ind_id)
+
             ins_qry = insert_query(sel_query)
+            # print ins_qry
+            # params = ("admin", ind_id, "null", " ", "", "admin", ind_id, "null", " ", "")
+            # cursor.execute(ins_qry, params)
+            # print "executed query"
 
-            params = ("admin", ind_id, "null", " ", "", "admin", ind_id, "null", " ", "")
-
-            cursor.execute(ins_qry, params)
+            ins_qry_nat = insert_qry_natl(sel_query)
+            params2 = ("admin", ind_id, "null", "null", "admin", ind_id, "null", 'null')
+            cursor.execute(ins_qry_nat, params2)
             print "executed query"
+
             conn.commit()
+
             del ins_qry
+            del ins_qry_nat
 
 
 def get_sel_query_list(cursor):

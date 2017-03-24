@@ -1,7 +1,7 @@
 import pyodbc
 
 # path to db
-db1 = r"C:\Users\samantha.gibbes\Documents\gis\hansen_2015\hansen_2015.accdb"
+db1 = r"C:\Users\samantha.gibbes\Documents\test\hansen_2015.accdb"
 
 # create access connection
 conn = pyodbc.connect(r'DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={}'.format(db1))
@@ -12,25 +12,24 @@ indicator_tbl = 'tbl_indicators_w_id'
 tcd_list = [10, 15, 20, 25, 30, 50, 75]
 
 sql_loss = 'INSERT INTO ' \
-           'tbl_summed_values ( adm0, adm1, adm2, loss_yr, tcd, area_of_loss, count_of_loss, biomass ) ' \
+           'tbl_summed_values_test ( adm0, adm1, adm2, loss_yr, tcd, area_of_loss, biomass ) ' \
            'SELECT ' \
-           'Temp_loss_results_2000_lines.adm0, ' \
-           'Temp_loss_results_2000_lines.adm1, ' \
-           'Temp_loss_results_2000_lines.adm2, ' \
-           'Temp_loss_results_2000_lines.year, ' \
-           '{} AS tcd, ' \
-           'Sum(Temp_loss_results_2000_lines.area) AS SumOfarea, ' \
-           'Sum(Temp_loss_results_2000_lines.count) AS SumOfcount, ' \
-           'Sum(Temp_loss_results_2000_lines.biomass) AS SumOfbiomass ' \
+           'Loss_climate_cum_sum.iso, ' \
+           'Loss_climate_cum_sum.adm1, ' \
+           'Loss_climate_cum_sum.adm2, ' \
+           'Loss_climate_cum_sum.year, ' \
+           '{0} AS thresh, ' \
+           'Sum(Loss_climate_cum_sum.area_raw) AS SumOfarea, ' \
+           'Sum(Loss_climate_cum_sum.emissions_raw) AS SumOfemiss ' \
            'FROM ' \
-           'Temp_loss_results_2000_lines ' \
-           'WHERE (((Temp_loss_results_2000_lines.thresh)>{})) ' \
+           'Loss_climate_cum_sum ' \
+           'WHERE (((Loss_climate_cum_sum.thresh)>{0})) ' \
            'GROUP BY ' \
-           'Temp_loss_results_2000_lines.adm0, ' \
-           'Temp_loss_results_2000_lines.adm1, ' \
-           'Temp_loss_results_2000_lines.adm2, ' \
-           'Temp_loss_results_2000_lines.year, ' \
-           '{};'
+           'Loss_climate_cum_sum.iso, ' \
+           'Loss_climate_cum_sum.adm1, ' \
+           'Loss_climate_cum_sum.adm2, ' \
+           'Loss_climate_cum_sum.year, ' \
+           '{0};'
 
 sql_make_extent_table = 'SELECT Treecover2000_first2000_lines.adm0, Treecover2000_first2000_lines.adm1, ' \
                         'Treecover2000_first2000_lines.adm2, Sum(Treecover2000_first2000_lines.extent) ' \
@@ -72,7 +71,7 @@ sql_update_biomass_extent = 'UPDATE tbl_temp_biomass ' \
 
 
 def run_sql(tcd, qry):
-    curs.execute(qry.format(tcd, tcd, tcd))
+    curs.execute(qry.format(tcd))
 
 # run a group by and sum query from the raw data for each tcd thresh
 # data from raw tables is appended to "tbl_summed_values"
@@ -82,21 +81,21 @@ for tcd in tcd_list:
     print sql_loss
     run_sql(tcd, sql_loss)
 
-    # make temp table of extent grouped by and summed
-    run_sql(tcd, sql_make_extent_table)
-
-    # make temp table of biomass extent grouped by and summed
-    run_sql(tcd, sql_make_biomass_extent_table)
-
-    # update the main table with the temp table of extent
-    run_sql(tcd, sql_update_extent)
-
-    # update the main table with the temp table of biomass extent
-    # run_sql(tcd, sql_update_biomass_extent)
-
-    # delete the extent table
-    curs.execute("DROP TABLE tbl_temp;")
-
-    # delete the biomass extent table
-    curs.execute("DROP TABLE tbl_temp_biomass")
+    # # make temp table of extent grouped by and summed
+    # run_sql(tcd, sql_make_extent_table)
+    #
+    # # make temp table of biomass extent grouped by and summed
+    # run_sql(tcd, sql_make_biomass_extent_table)
+    #
+    # # update the main table with the temp table of extent
+    # run_sql(tcd, sql_update_extent)
+    #
+    # # update the main table with the temp table of biomass extent
+    # # run_sql(tcd, sql_update_biomass_extent)
+    #
+    # # delete the extent table
+    # curs.execute("DROP TABLE tbl_temp;")
+    #
+    # # delete the biomass extent table
+    # curs.execute("DROP TABLE tbl_temp_biomass")
     conn.commit()

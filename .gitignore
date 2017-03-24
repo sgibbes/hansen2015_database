@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+*.idea/
+
+*.tif
+
+*.png
+
+*.shp
+*.dbf
+*.sbn
+*.prj
+*.sbx
+*.shp.xml
+*.shx
+*.cpg
+
+*.gdb/
+*.zip
+*.lock
+*.csv
+*.spx
+*.xml
